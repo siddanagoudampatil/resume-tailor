@@ -1,0 +1,8 @@
+- `[ ]` Move app code from `resume-agent/` to root
+- `[ ]` Move resume data (`resume.md`, `jobs/`) from `resume-agent-skills/` to root
+- `[ ]` Move agent skills to `agent-skills/` and delete Cursor folders
+- `[ ]` Delete unnecessary example templates and redundant `AGENTS.md` files
+- `[ ]` Merge `README.md` and `.gitignore`
+- `[ ]` Clean up empty source directories
+- `[ ]` Update `gemini-agent.ts` with correct `agent-skills/` paths
+- `[ ]` Run `pnpm install` and verify build
