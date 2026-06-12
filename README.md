@@ -1,81 +1,63 @@
-# Resume Agent
+# Gemini Resume Agent
 
-**Resume Agent** tailors your markdown resume for a specific job—honestly—from the job page you're already viewing. A Chrome extension captures the role and job description; a local API runs a **Composer 2.5** cloud agent on your **GitHub resume repo** and opens a PR with a fit report, tailored resume, and change summary.
+**Resume Agent** tailors your markdown resume for a specific job—honestly—from the job page you're already viewing. A Chrome extension captures the role and job description; a local API runs a **Gemini 1.5 Pro** agent directly on your GitHub repository and opens a PR with a fit report, tailored resume, and change summary.
 
 ## Architecture
 
 ```
-Chrome extension  →  apps/api (localhost)  →  Cursor cloud agent  →  your resume repo (PR)
+Chrome extension  →  apps/api (localhost)  →  Gemini 1.5 Pro  →  your GitHub repo (PR via Octokit)
 ```
 
-The extension never sees your Cursor API key.
+The app handles the generation completely in-memory and pushes the resulting files directly via the GitHub API, maintaining a zero-local-footprint ("GitHub's memory") workflow.
 
-## Quick start
+## Workspace Structure
 
-1. Copy `example` to a new GitHub repository and connect it in [Cursor](https://cursor.com/dashboard). Reference standalone repo: [gopinav/resume-agent-skills](https://github.com/gopinav/resume-agent-skills).
-2. Copy `apps/api/.env.example` to `apps/api/.env` and set `CURSOR_API_KEY`, `BACKEND_SHARED_SECRET` (32+ random bytes), and `RESUME_REPO_URL`.
-3. `pnpm install && pnpm dev:api`
-4. Load `apps/extension` as an unpacked extension (see runbook), set backend port and shared token in Options.
-5. Open a job posting, confirm in the popup, and **Tailor resume**.
+Your application code and your personal resume data live together in this unified repository.
 
-**Testing:** step-by-step guide → [docs/TESTING.md](docs/TESTING.md)  
-Shorter E2E reference → [docs/runbooks/resume-agent-e2e.md](docs/runbooks/resume-agent-e2e.md)
-
-## Workspace
-
-| Package | Role |
+| Folder/Package | Role |
 |---------|------|
-| `apps/extension` | MV3 — extract JD, confirm, stream progress |
-| `apps/api` | Express API — SDK orchestration, SSE |
+| `apps/extension` | Chrome Extension (MV3) — extracts job description, confirms, streams progress |
+| `apps/api` | Express API — Orchestrates Gemini & GitHub Octokit, handles SSE |
 | `packages/shared` | Shared TypeScript contracts |
-| `example` | Template resume + `tailor-resume` skill — lives in its own repo ([gopinav/resume-agent-skills](https://github.com/gopinav/resume-agent-skills)) |
+| `resume.md` | Your canonical markdown resume |
+| `agent-skills/` | The exact instructions, rules, and governance the AI must follow |
+| `jobs/` | The output directory where tailored resumes and fit reports are saved |
 
-## Environment
+## Environment Variables
+
+Copy `apps/api/.env.example` to `apps/api/.env` and configure:
 
 | Variable | Where | Purpose |
 |----------|-------|---------|
-| `CURSOR_API_KEY` | API only | Cursor SDK |
-| `BACKEND_SHARED_SECRET` | API + extension options | `X-Resume-Agent-Token` |
+| `GEMINI_API_KEY` | API only | Google Gemini 1.5 Pro auth |
+| `GITHUB_TOKEN` | API only | GitHub auth (Classic with `repo` scope, or Fine-grained with PR access) |
+| `BACKEND_SHARED_SECRET` | API + extension | Authorization header `X-Resume-Agent-Token` |
 | `PORT` | API | Default `3847` |
-| `RESUME_REPO_URL` | API | Default repo for runs |
+| `RESUME_REPO_URL` | API | Your GitHub repository URL |
 | `DEV_EXTENSION_ORIGIN` | API | CORS allowlist |
-| `DEMO_RUN_FIXTURE_PATH` | API | Optional replay mode for demos/testing |
+
+## Quick Start (Local Setup)
+
+1. **Configure Environment:** Set up your `apps/api/.env` as described above.
+2. **Start the API:** Run the backend server.
+   ```bash
+   pnpm install
+   pnpm --filter @resume-agent/api dev
+   ```
+3. **Start the Extension:** In a separate terminal, run the Vite dev server for the extension.
+   ```bash
+   pnpm --filter @resume-agent/extension dev
+   ```
+4. **Load the Extension:** 
+   - Open Chrome and go to `chrome://extensions/`
+   - Turn on **Developer mode**
+   - Click **Load unpacked** and select the `apps/extension/dist` folder in this workspace.
+5. **Tailor a Resume!**
+   - Open a job posting on LinkedIn (or a supported job board).
+   - Click the Resume Agent extension icon.
+   - Wait 1-2 minutes for Gemini to process.
+   - Check your GitHub repository for a brand new Pull Request containing your `fit-report.md` and tailored `resume.md`!
 
 ## License
 
 Private / demo — see repo owner.
-
-
---- Resume Skills Section ---
-
-# Resume Agent — demo resume repo
-
-Copy this repository to your GitHub account and connect it in the [Cursor dashboard](https://cursor.com/dashboard) so cloud agents can clone it.
-
-## Setup
-
-1. Create a new repo and push these files (including `.cursor/skills/`).
-2. In Cursor, connect the GitHub repository for cloud agents.
-3. Set `RESUME_REPO_URL` in the Resume Agent API to your repo URL.
-4. Keep `resume.md` on `main` as your canonical profile.
-
-## First run
-
-Use the Resume Agent Chrome extension or API with a real job description. The cloud agent should:
-
-1. Read `resume.md`
-2. Follow `.cursor/skills/tailor-resume/SKILL.md`
-3. Write three files under `jobs/<company>/<role>/`:
-   - `fit-report.md`
-   - `tailored-resume.md`
-   - `change-summary.md`
-4. Open a PR via `autoCreatePR`
-
-The generated `fit-report.md` should include:
-
-- **Overall fit** with `**Tier:**`, `**Verdict:**`, and a short narrative
-- **Strong matches**
-- **Gaps**
-- **Do not add** items that must not be added to `tailored-resume.md`
-
-If the skill is not auto-detected, mention **`tailor-resume`** explicitly in the run prompt (the API does this by default).
