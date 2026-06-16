@@ -23,7 +23,7 @@
     "branch": "cursor/tailor-acme-frontend",
     "outputPaths": {
       "fitReport": "jobs/acme-corp/frontend-engineer/fit-report.md",
-      "tailoredResume": "jobs/acme-corp/frontend-engineer/tailored-resume.tex",
+      "tailoredResume": "jobs/acme-corp/frontend-engineer/tailored-resume.md",
       "changeSummary": "jobs/acme-corp/frontend-engineer/change-summary.md"
     },
     "warnings": []

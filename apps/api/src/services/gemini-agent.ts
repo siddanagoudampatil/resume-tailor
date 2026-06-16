@@ -71,7 +71,7 @@ async function runGeminiAgent(params: StartRunParams): Promise<void> {
 		// We assume this runs from either workspace root or apps/api
 		const rootDir = process.cwd().endsWith("api") ? path.join(process.cwd(), "../../") : process.cwd();
 
-		const resumeTex = await fs.readFile(path.join(rootDir, "resume.tex"), "utf-8");
+		const resumeMd = await fs.readFile(path.join(rootDir, "resume.md"), "utf-8");
 		const skillMd = await fs.readFile(path.join(rootDir, "agent-skills/SKILL.md"), "utf-8");
 
 		const referencesToFetch = [
@@ -113,8 +113,8 @@ ${skillMd}
 === REFERENCES ===
 ${referencesText}
 
-=== SOURCE RESUME (resume.tex) ===
-${resumeTex}
+=== SOURCE RESUME (resume.md) ===
+${resumeMd}
 `;
 
 		const userPrompt = buildRunPrompt(job);
@@ -130,7 +130,7 @@ ${resumeTex}
 					type: Type.OBJECT,
 					properties: {
 						fitReport: { type: Type.STRING, description: "Markdown content for fit-report.md" },
-						tailoredResume: { type: Type.STRING, description: "LaTeX content for tailored-resume.tex" },
+						tailoredResume: { type: Type.STRING, description: "Markdown content for tailored-resume.md" },
 						changeSummary: { type: Type.STRING, description: "Markdown content for change-summary.md" },
 					},
 					required: ["fitReport", "tailoredResume", "changeSummary"],
@@ -162,13 +162,13 @@ ${resumeTex}
 		await fs.mkdir(fullBasePath, { recursive: true });
 
 		await fs.writeFile(path.join(fullBasePath, "fit-report.md"), fitReport, "utf-8");
-		await fs.writeFile(path.join(fullBasePath, "tailored-resume.tex"), tailoredResume, "utf-8");
+		await fs.writeFile(path.join(fullBasePath, "tailored-resume.md"), tailoredResume, "utf-8");
 		await fs.writeFile(path.join(fullBasePath, "change-summary.md"), changeSummary, "utf-8");
 
 		/*
     const files = [
       { path: `${basePath}/fit-report.md`, content: fitReport },
-      { path: `${basePath}/tailored-resume.tex`, content: tailoredResume },
+      { path: `${basePath}/tailored-resume.md`, content: tailoredResume },
       { path: `${basePath}/change-summary.md`, content: changeSummary },
     ];
 
@@ -187,7 +187,7 @@ ${resumeTex}
 		// 4. Complete
 		const outputPaths = {
 			fitReport: `${basePath}/fit-report.md`,
-			tailoredResume: `${basePath}/tailored-resume.tex`,
+			tailoredResume: `${basePath}/tailored-resume.md`,
 			changeSummary: `${basePath}/change-summary.md`,
 		};
 
