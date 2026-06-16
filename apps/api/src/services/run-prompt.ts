@@ -3,7 +3,7 @@ import { jobOutputFolder, type JobPayload } from "@resume-agent/shared";
 export function buildRunPrompt(job: JobPayload): string {
   const folder = jobOutputFolder(job.company, job.title);
   return [
-    "Use the tailor-resume skill for this run. Read resume.md as the source of truth.",
+    "Use the tailor-resume skill for this run. Read resume.tex as the source of truth.",
     "",
     `Company: ${job.company}`,
     `Role: ${job.title}`,
@@ -11,7 +11,7 @@ export function buildRunPrompt(job: JobPayload): string {
     "",
     "Write outputs to:",
     `- ${folder}/fit-report.md`,
-    `- ${folder}/tailored-resume.md`,
+    `- ${folder}/tailored-resume.tex`,
     `- ${folder}/change-summary.md`,
     "",
     "Open a PR titled: feat: tailor resume for " +
@@ -26,7 +26,7 @@ export function outputPathsForJob(job: JobPayload) {
   const folder = jobOutputFolder(job.company, job.title);
   return {
     fitReport: `${folder}/fit-report.md`,
-    tailoredResume: `${folder}/tailored-resume.md`,
+    tailoredResume: `${folder}/tailored-resume.tex`,
     changeSummary: `${folder}/change-summary.md`,
   };
 }

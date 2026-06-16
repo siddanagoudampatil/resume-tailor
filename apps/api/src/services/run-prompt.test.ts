@@ -21,7 +21,7 @@ describe("buildRunPrompt", () => {
 
   it("foregrounds JD alignment without embedding ATS rules inline", () => {
     const prompt = buildRunPrompt(job);
-    expect(prompt).toContain("resume.md");
+    expect(prompt).toContain("resume.tex");
     expect(prompt).not.toContain("Greenhouse");
   });
 });
@@ -29,7 +29,7 @@ describe("buildRunPrompt", () => {
 describe("outputPathsForJob", () => {
   it("slugifies company and role", () => {
     expect(outputPathsForJob(job).tailoredResume).toBe(
-      "jobs/acme-corp/frontend-engineer/tailored-resume.md",
+      "jobs/acme-corp/frontend-engineer/tailored-resume.tex",
     );
   });
 });

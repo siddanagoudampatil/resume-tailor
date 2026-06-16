@@ -3,7 +3,7 @@
  * Usage: pnpm --filter @resume-agent/api smoke
  */
 import { loadConfig } from "../src/config.js";
-import { startCloudRun } from "../src/services/cursor-agent.js";
+import { startCloudRun } from "../src/services/gemini-agent.js";
 import { RunStore } from "../src/services/run-store.js";
 import { randomUUID } from "node:crypto";
 import { MIN_DESCRIPTION_LENGTH } from "@resume-agent/shared";
@@ -37,4 +37,15 @@ await startCloudRun({
   },
 });
 
-console.log("Started run", runId, "— poll GET /runs/" + runId);
+console.log("Started run", runId);
+
+setInterval(() => {
+  const run = store.get(runId);
+  if (!run) return;
+  console.log("Status:", run.status);
+  if (run.status === "succeeded" || run.status === "failed") {
+    console.log("Run completed:", run.status);
+    console.log("Error if any:", (run as any).error);
+    process.exit(run.status === "failed" ? 1 : 0);
+  }
+}, 2000);

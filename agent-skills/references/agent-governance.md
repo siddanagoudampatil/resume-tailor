@@ -1,6 +1,6 @@
 # Agent governance
 
-**Hierarchy:** `resume.md` > verified JD facts > stylistic suggestions
+**Hierarchy:** `resume.tex` > verified JD facts > stylistic suggestions
 
 **Allowed:** rephrase, reorder, emphasize, trim length, align honest keywords
 

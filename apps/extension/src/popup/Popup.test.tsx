@@ -110,7 +110,7 @@ describe("Popup", () => {
       prUrl: "https://github.com/example/resume/pull/1",
       outputPaths: {
         fitReport: "jobs/acme/engineer/fit-report.md",
-        tailoredResume: "jobs/acme/engineer/tailored-resume.md",
+        tailoredResume: "jobs/acme/engineer/tailored-resume.tex",
         changeSummary: "jobs/acme/engineer/change-summary.md",
       },
     };
@@ -134,7 +134,7 @@ describe("Popup", () => {
       status: "succeeded",
       outputPaths: {
         fitReport: "jobs/acme/engineer/fit-report.md",
-        tailoredResume: "jobs/acme/engineer/tailored-resume.md",
+        tailoredResume: "jobs/acme/engineer/tailored-resume.tex",
         changeSummary: "jobs/acme/engineer/change-summary.md",
       },
     };
@@ -159,7 +159,7 @@ describe("Popup", () => {
       error: "Agent run failed",
       outputPaths: {
         fitReport: "jobs/acme/engineer/fit-report.md",
-        tailoredResume: "jobs/acme/engineer/tailored-resume.md",
+        tailoredResume: "jobs/acme/engineer/tailored-resume.tex",
         changeSummary: "jobs/acme/engineer/change-summary.md",
       },
     };

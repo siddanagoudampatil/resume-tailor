@@ -19,7 +19,7 @@ Your application code and your personal resume data live together in this unifie
 | `apps/extension` | Chrome Extension (MV3) — extracts job description, confirms, streams progress |
 | `apps/api` | Express API — Orchestrates Gemini & GitHub Octokit, handles SSE |
 | `packages/shared` | Shared TypeScript contracts |
-| `resume.md` | Your canonical markdown resume |
+| `resume.tex` | Your canonical LaTeX resume |
 | `agent-skills/` | The exact instructions, rules, and governance the AI must follow |
 | `jobs/` | The output directory where tailored resumes and fit reports are saved |
 
@@ -56,7 +56,7 @@ Copy `apps/api/.env.example` to `apps/api/.env` and configure:
    - Open a job posting on LinkedIn (or a supported job board).
    - Click the Resume Agent extension icon.
    - Wait 1-2 minutes for Gemini to process.
-   - Check your GitHub repository for a brand new Pull Request containing your `fit-report.md` and tailored `resume.md`!
+   - Check your GitHub repository for a brand new Pull Request containing your `fit-report.md` and tailored `resume.tex`!
 
 ## License
 

@@ -26,7 +26,16 @@ app.use(
         callback(null, true);
         return;
       }
-      callback(new Error("CORS not allowed"));
+      
+      // Allow any local extension during development if they still have the default placeholder
+      if (config.devExtensionOrigin === "chrome-extension://YOUR_EXTENSION_ID" && origin.startsWith("chrome-extension://")) {
+        console.warn(`[CORS] Allowing origin ${origin} because DEV_EXTENSION_ORIGIN is still set to the default placeholder.`);
+        callback(null, true);
+        return;
+      }
+      
+      console.error(`[CORS] Rejected origin: ${origin}. Please update DEV_EXTENSION_ORIGIN in apps/api/.env`);
+      callback(new Error(`CORS not allowed for origin: ${origin}`));
     },
     allowedHeaders: ["Content-Type", "X-Resume-Agent-Token"],
     methods: ["GET", "POST", "OPTIONS"],
