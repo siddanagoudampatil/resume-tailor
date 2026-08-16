@@ -12,6 +12,8 @@ export function buildRunPrompt(job: JobPayload): string {
     "Write outputs to:",
     `- ${folder}/fit-report.md`,
     `- ${folder}/tailored-resume.md`,
+    `- ${folder}/tailored-resume.tex`,
+    `- ${folder}/cover-letter.tex`,
     `- ${folder}/change-summary.md`,
     "",
     "Open a PR titled: feat: tailor resume for " +
@@ -27,6 +29,8 @@ export function outputPathsForJob(job: JobPayload) {
   return {
     fitReport: `${folder}/fit-report.md`,
     tailoredResume: `${folder}/tailored-resume.md`,
+    tailoredResumeTex: `${folder}/tailored-resume.tex`,
+    coverLetterTex: `${folder}/cover-letter.tex`,
     changeSummary: `${folder}/change-summary.md`,
   };
 }

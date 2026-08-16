@@ -77,6 +77,8 @@ async function runGeminiAgent(params: StartRunParams): Promise<void> {
 		const rootDir = process.cwd().endsWith("api") ? path.join(process.cwd(), "../../") : process.cwd();
 
 		const resumeMd = await fs.readFile(path.join(rootDir, "resume.md"), "utf-8");
+		const resumeTex = await fs.readFile(path.join(rootDir, "resume.tex"), "utf-8");
+		const coverLetterTemplate = await fs.readFile(path.join(rootDir, "cover-letter.tex"), "utf-8");
 		const skillMd = await fs.readFile(path.join(rootDir, "agent-skills/SKILL.md"), "utf-8");
 
 		const referencesToFetch = [
@@ -120,6 +122,12 @@ ${referencesText}
 
 === SOURCE RESUME (resume.md) ===
 ${resumeMd}
+
+=== LATEX TEMPLATE (resume.tex) ===
+${resumeTex}
+
+=== COVER LETTER TEMPLATE (cover-letter.tex) ===
+${coverLetterTemplate}
 `;
 
 		const userPrompt = buildRunPrompt(job);
@@ -136,9 +144,11 @@ ${resumeMd}
 					properties: {
 						fitReport: { type: Type.STRING, description: "Markdown content for fit-report.md" },
 						tailoredResume: { type: Type.STRING, description: "Markdown content for tailored-resume.md" },
+						tailoredResumeTex: { type: Type.STRING, description: "LaTeX content for tailored-resume.tex matching the structure and commands of resume.tex but with tailored details" },
+						coverLetterTex: { type: Type.STRING, description: "LaTeX content for cover-letter.tex matching the structure of cover-letter.tex but with recipient, role, date, and tailored contents customized for the job description. Focus on highlighting how the candidate's skills map to the job requirements and why they are the best fit, rather than just repeating the resume." },
 						changeSummary: { type: Type.STRING, description: "Markdown content for change-summary.md" },
 					},
-					required: ["fitReport", "tailoredResume", "changeSummary"],
+					required: ["fitReport", "tailoredResume", "tailoredResumeTex", "coverLetterTex", "changeSummary"],
 				},
 			},
 		});
@@ -148,7 +158,7 @@ ${resumeMd}
 		}
 
 		const resultData = JSON.parse(response.text);
-		const { fitReport, tailoredResume, changeSummary } = resultData;
+		const { fitReport, tailoredResume, tailoredResumeTex, coverLetterTex, changeSummary } = resultData;
 
 		// 3. Create PR via GitHub (Commented out for local testing)
 		store.appendEvent(runId, {
@@ -168,6 +178,8 @@ ${resumeMd}
 
 		await fs.writeFile(path.join(fullBasePath, "fit-report.md"), fitReport, "utf-8");
 		await fs.writeFile(path.join(fullBasePath, "tailored-resume.md"), tailoredResume, "utf-8");
+		await fs.writeFile(path.join(fullBasePath, "tailored-resume.tex"), tailoredResumeTex, "utf-8");
+		await fs.writeFile(path.join(fullBasePath, "cover-letter.tex"), coverLetterTex, "utf-8");
 		await fs.writeFile(path.join(fullBasePath, "change-summary.md"), changeSummary, "utf-8");
 
 		// ==========================================
@@ -177,6 +189,8 @@ ${resumeMd}
 		const files = [
 			{ path: `${basePath}/fit-report.md`, content: fitReport },
 			{ path: `${basePath}/tailored-resume.md`, content: tailoredResume },
+			{ path: `${basePath}/tailored-resume.tex`, content: tailoredResumeTex },
+			{ path: `${basePath}/cover-letter.tex`, content: coverLetterTex },
 			{ path: `${basePath}/change-summary.md`, content: changeSummary },
 		];
 
@@ -197,6 +211,8 @@ ${resumeMd}
 		const outputPaths = {
 			fitReport: `${basePath}/fit-report.md`,
 			tailoredResume: `${basePath}/tailored-resume.md`,
+			tailoredResumeTex: `${basePath}/tailored-resume.tex`,
+			coverLetterTex: `${basePath}/cover-letter.tex`,
 			changeSummary: `${basePath}/change-summary.md`,
 		};
 

@@ -1,6 +1,6 @@
 # Siddanagouda Patil
 
-(+1) (480)-604-9185 | [spati193@asu.edu](mailto:spati193@asu.edu) | [linkedin.com/in/s-m-patil](https://www.linkedin.com/in/s-m-patil/)
+(+1) (000)-000-0000 | [your.email@gmail.com](mailto:your.email@gmail.com) | [linkedin.com/in/your-username](https://www.linkedin.com/in/your-username)
 
 ---
 

@@ -67,6 +67,8 @@ export interface RunCompleteResponse {
   outputPaths?: {
     fitReport: string;
     tailoredResume: string;
+    tailoredResumeTex?: string;
+    coverLetterTex?: string;
     changeSummary: string;
   };
   warnings?: string[];
