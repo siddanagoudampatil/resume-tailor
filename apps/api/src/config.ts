@@ -28,7 +28,7 @@ export function loadConfig() {
   return {
     port: Number(process.env.PORT ?? 3847),
     geminiApiKey: requireEnv("GEMINI_API_KEY"),
-    githubToken: requireEnv("GITHUB_TOKEN"),
+    githubToken: process.env.GITHUB_TOKEN?.trim() || "",
     sharedSecret,
     resumeRepoUrl: process.env.RESUME_REPO_URL?.trim() ?? "",
     devExtensionOrigin: process.env.DEV_EXTENSION_ORIGIN?.trim() ?? "",

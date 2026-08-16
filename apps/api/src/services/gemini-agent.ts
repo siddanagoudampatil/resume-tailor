@@ -50,7 +50,7 @@ async function runGeminiAgent(params: StartRunParams): Promise<void> {
 	store.setAgentId(runId, "gemini-1.5-pro");
 	store.appendEvent(runId, {
 		type: "status",
-		label: "Fetching resume and skills from GitHub...",
+		label: "Reading resume and skills from local workspace...",
 		timestamp: new Date().toISOString(),
 	});
 
@@ -58,6 +58,10 @@ async function runGeminiAgent(params: StartRunParams): Promise<void> {
 		if (!process.env.GEMINI_API_KEY) {
 			throw new Error("GEMINI_API_KEY is not set.");
 		}
+		
+		// ==========================================
+		// SECTIONS THAT UPDATE OR READ FROM GITHUB (DISABLED FOR LOCAL RUN)
+		// ==========================================
 		// if (!process.env.GITHUB_TOKEN) {
 		//   throw new Error("GITHUB_TOKEN is not set.");
 		// }
@@ -66,7 +70,8 @@ async function runGeminiAgent(params: StartRunParams): Promise<void> {
 		// const { owner, repo } = parseRepoUrl(repoUrl);
 		// const baseRef = config.cloudStartingRef || "main";
 
-		// 1. Fetch source files from GitHub (Commented out for local testing)
+		// 1. Fetch source files from GitHub (Disabled: reading from local disk instead)
+		// ==========================================
 
 		// We assume this runs from either workspace root or apps/api
 		const rootDir = process.cwd().endsWith("api") ? path.join(process.cwd(), "../../") : process.cwd();
@@ -165,23 +170,27 @@ ${resumeMd}
 		await fs.writeFile(path.join(fullBasePath, "tailored-resume.md"), tailoredResume, "utf-8");
 		await fs.writeFile(path.join(fullBasePath, "change-summary.md"), changeSummary, "utf-8");
 
+		// ==========================================
+		// SECTIONS THAT UPDATE OR READ FROM GITHUB (DISABLED FOR LOCAL RUN)
+		// ==========================================
 		/*
-    const files = [
-      { path: `${basePath}/fit-report.md`, content: fitReport },
-      { path: `${basePath}/tailored-resume.md`, content: tailoredResume },
-      { path: `${basePath}/change-summary.md`, content: changeSummary },
-    ];
+		const files = [
+			{ path: `${basePath}/fit-report.md`, content: fitReport },
+			{ path: `${basePath}/tailored-resume.md`, content: tailoredResume },
+			{ path: `${basePath}/change-summary.md`, content: changeSummary },
+		];
 
-    const prUrl = await createPRWithFiles(
-      octokit,
-      owner,
-      repo,
-      baseRef,
-      branchName,
-      files,
-      `feat: tailor resume for ${job.title} at ${job.company}`
-    );
-    */
+		const prUrl = await createPRWithFiles(
+			octokit,
+			owner,
+			repo,
+			baseRef,
+			branchName,
+			files,
+			`feat: tailor resume for ${job.title} at ${job.company}`
+		);
+		*/
+		// ==========================================
 		const prUrl = `file://${fullBasePath}`;
 
 		// 4. Complete
@@ -205,7 +214,7 @@ ${resumeMd}
 
 		store.appendEvent(runId, {
 			type: "complete",
-			label: "PR opened",
+			label: "Resume tailored and saved locally!",
 			timestamp: new Date().toISOString(),
 		});
 
