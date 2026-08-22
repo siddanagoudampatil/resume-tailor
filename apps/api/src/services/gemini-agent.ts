@@ -47,7 +47,7 @@ async function runGeminiAgent(params: StartRunParams): Promise<void> {
 	activeRuns.add(runId);
 
 	store.setStatus(runId, "running");
-	store.setAgentId(runId, "gemini-1.5-pro");
+	store.setAgentId(runId, "gemini-3.7-flash");
 	store.appendEvent(runId, {
 		type: "status",
 		label: "Reading resume and skills from local workspace...",
@@ -114,6 +114,8 @@ You are the Resume Agent.
 Your job is to tailor the user's resume for a specific job application.
 Follow the skill instructions strictly. DO NOT hallucinate or invent experience.
 
+Identify the hiring company name and the target job role name from the job description and job role title provided in the prompt. Do not use the Job URL to infer the company name. Strip legal entity suffixes from the company name (e.g., "Acme Inc." -> "Acme"). Return these as "company" and "role" in the output JSON.
+
 === SKILL.md ===
 ${skillMd}
 
@@ -133,7 +135,7 @@ ${coverLetterTemplate}
 		const userPrompt = buildRunPrompt(job);
 
 		const response = await ai.models.generateContent({
-			model: "gemini-2.5-flash-lite",
+			model: "gemini-3.7-flash",
 			contents: userPrompt,
 			config: {
 				systemInstruction: systemInstruction,
@@ -142,13 +144,15 @@ ${coverLetterTemplate}
 				responseSchema: {
 					type: Type.OBJECT,
 					properties: {
+						company: { type: Type.STRING, description: "The name of the company hiring for this role, extracted from the job title and description. Strip legal entity suffixes (e.g. Inc, LLC, Ltd)." },
+						role: { type: Type.STRING, description: "The specific job title/role, cleaned from the job title and description (e.g. 'Senior Frontend Engineer')." },
 						fitReport: { type: Type.STRING, description: "Markdown content for fit-report.md" },
 						tailoredResume: { type: Type.STRING, description: "Markdown content for tailored-resume.md" },
 						tailoredResumeTex: { type: Type.STRING, description: "LaTeX content for tailored-resume.tex matching the structure and commands of resume.tex but with tailored details" },
 						coverLetterTex: { type: Type.STRING, description: "LaTeX content for cover-letter.tex matching the structure of cover-letter.tex but with recipient, role, date, and tailored contents customized for the job description. Focus on highlighting how the candidate's skills map to the job requirements and why they are the best fit, rather than just repeating the resume." },
 						changeSummary: { type: Type.STRING, description: "Markdown content for change-summary.md" },
 					},
-					required: ["fitReport", "tailoredResume", "tailoredResumeTex", "coverLetterTex", "changeSummary"],
+					required: ["company", "role", "fitReport", "tailoredResume", "tailoredResumeTex", "coverLetterTex", "changeSummary"],
 				},
 			},
 		});
@@ -158,7 +162,15 @@ ${coverLetterTemplate}
 		}
 
 		const resultData = JSON.parse(response.text);
-		const { fitReport, tailoredResume, tailoredResumeTex, coverLetterTex, changeSummary } = resultData;
+		const {
+			company: extractedCompany,
+			role: extractedRole,
+			fitReport,
+			tailoredResume,
+			tailoredResumeTex,
+			coverLetterTex,
+			changeSummary
+		} = resultData;
 
 		// 3. Create PR via GitHub (Commented out for local testing)
 		store.appendEvent(runId, {
@@ -167,9 +179,12 @@ ${coverLetterTemplate}
 			timestamp: new Date().toISOString(),
 		});
 
-		const companySlug = slugifySegment(stripLegalSuffix(job.company));
-		const roleSlug = slugifySegment(job.title);
-		const basePath = jobOutputFolder(job.company, job.title);
+		const companyName = extractedCompany?.trim() || job.company;
+		const roleName = extractedRole?.trim() || job.title;
+
+		const companySlug = slugifySegment(stripLegalSuffix(companyName));
+		const roleSlug = slugifySegment(roleName);
+		const basePath = jobOutputFolder(companyName, roleName);
 		const branchName = `feat/tailor-${roleSlug}-${companySlug}-${Date.now()}`;
 
 		// Write to local folder
@@ -201,7 +216,7 @@ ${coverLetterTemplate}
 			baseRef,
 			branchName,
 			files,
-			`feat: tailor resume for ${job.title} at ${job.company}`
+			`feat: tailor resume for ${roleName} at ${companyName}`
 		);
 		*/
 		// ==========================================
@@ -218,7 +233,7 @@ ${coverLetterTemplate}
 
 		let responsePayload: RunCompleteResponse = {
 			runId,
-			agentId: "gemini-1.5-pro",
+			agentId: "gemini-3.7-flash",
 			status: "succeeded",
 			prUrl,
 			branch: branchName,
@@ -240,7 +255,7 @@ ${coverLetterTemplate}
 		store.fail(runId, message);
 		store.complete(runId, {
 			runId,
-			agentId: "gemini-1.5-pro",
+			agentId: "gemini-3.7-flash",
 			status: "failed",
 			error: message,
 		});

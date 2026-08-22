@@ -22,9 +22,9 @@ export function buildExtractResult(
   };
 }
 
-export function queryText(selectors: string[]): string {
+export function queryText(selectors: string[], root: ParentNode = document): string {
   for (const selector of selectors) {
-    const el = document.querySelector(selector);
+    const el = root.querySelector(selector);
     if (el?.textContent?.trim()) {
       return el.textContent.trim();
     }
@@ -32,14 +32,16 @@ export function queryText(selectors: string[]): string {
   return "";
 }
 
-export function queryDescription(selectors: string[]): string {
+export function queryDescription(selectors: string[], root: ParentNode = document): string {
   for (const selector of selectors) {
-    const el = document.querySelector(selector);
+    const el = root.querySelector(selector);
     if (el?.textContent?.trim()) {
       return normalizeDescription(el.textContent);
     }
   }
-  return normalizeDescription(document.body?.innerText ?? "");
+  return normalizeDescription(
+    (root as any).body?.innerText ?? (root as any).innerText ?? ""
+  );
 }
 
 const HOST_BRAND_OVERRIDES: Record<string, string> = {
