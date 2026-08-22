@@ -43,11 +43,11 @@ export const startLocalRun = startAgentRun;
 export const startCloudRun = startAgentRun;
 
 async function runGeminiAgent(params: StartRunParams): Promise<void> {
-	const { runId, job, store } = params;
+	const { runId, job, store, config } = params;
 	activeRuns.add(runId);
 
 	store.setStatus(runId, "running");
-	store.setAgentId(runId, "gemini-3.7-flash");
+	store.setAgentId(runId, config.geminiModel);
 	store.appendEvent(runId, {
 		type: "status",
 		label: "Reading resume and skills from local workspace...",
@@ -135,7 +135,7 @@ ${coverLetterTemplate}
 		const userPrompt = buildRunPrompt(job);
 
 		const response = await ai.models.generateContent({
-			model: "gemini-3.7-flash",
+			model: config.geminiModel,
 			contents: userPrompt,
 			config: {
 				systemInstruction: systemInstruction,
@@ -233,7 +233,7 @@ ${coverLetterTemplate}
 
 		let responsePayload: RunCompleteResponse = {
 			runId,
-			agentId: "gemini-3.7-flash",
+			agentId: config.geminiModel,
 			status: "succeeded",
 			prUrl,
 			branch: branchName,
@@ -255,7 +255,7 @@ ${coverLetterTemplate}
 		store.fail(runId, message);
 		store.complete(runId, {
 			runId,
-			agentId: "gemini-3.7-flash",
+			agentId: config.geminiModel,
 			status: "failed",
 			error: message,
 		});

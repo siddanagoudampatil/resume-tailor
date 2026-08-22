@@ -24,10 +24,12 @@ export function loadConfig() {
 
   const agentRuntime = parseAgentRuntime(process.env.AGENT_RUNTIME);
   const cloudStartingRef = process.env.CLOUD_STARTING_REF?.trim() || "main";
+  const geminiModel = process.env.GEMINI_MODEL?.trim() || "gemini-3.7-flash";
 
   return {
     port: Number(process.env.PORT ?? 3847),
     geminiApiKey: requireEnv("GEMINI_API_KEY"),
+    geminiModel,
     githubToken: process.env.GITHUB_TOKEN?.trim() || "",
     sharedSecret,
     resumeRepoUrl: process.env.RESUME_REPO_URL?.trim() ?? "",

@@ -18,6 +18,7 @@ const TOKEN = "test-secret-with-enough-length-for-auth-middleware";
 const config: AppConfig = {
   port: 3847,
   geminiApiKey: "test-gemini-key",
+  geminiModel: "gemini-3.7-flash",
   githubToken: "test-github-token",
   sharedSecret: TOKEN,
   resumeRepoUrl: "https://github.com/example/resume",
