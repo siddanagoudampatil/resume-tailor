@@ -7,7 +7,7 @@ export function buildRunPrompt(job: JobPayload): string {
     "",
     `Company: ${job.company}`,
     `Role: ${job.title}`,
-    `Job URL: ${job.url}`,
+    `Job URL: ${job.url?.trim() || "N/A"}`,
     "",
     "Write outputs to:",
     `- ${folder}/fit-report.md`,

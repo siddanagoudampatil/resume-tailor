@@ -24,15 +24,15 @@ export default defineManifest({
   },
   content_scripts: [
     {
-      matches: ["https://www.linkedin.com/jobs/view/*", "https://linkedin.com/jobs/view/*"],
+      matches: ["https://www.linkedin.com/jobs/*", "https://linkedin.com/jobs/*"],
       js: ["src/content/linkedin.ts"],
       run_at: "document_idle",
     },
     {
       matches: ["<all_urls>"],
       exclude_matches: [
-        "https://www.linkedin.com/jobs/view/*",
-        "https://linkedin.com/jobs/view/*",
+        "https://www.linkedin.com/jobs/*",
+        "https://linkedin.com/jobs/*",
       ],
       js: ["src/content/generic.ts"],
       run_at: "document_idle",

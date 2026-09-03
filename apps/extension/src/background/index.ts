@@ -12,13 +12,29 @@ void applyDefaultSettings();
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "JOB_EXTRACTED") {
     lastExtract = message.payload as JobExtractResult;
+    void chrome.storage.local.set({ lastExtract });
     sendResponse({ ok: true });
     return;
   }
 
   if (message?.type === "GET_LAST_EXTRACT") {
-    sendResponse({ payload: lastExtract });
-    return;
+    if (lastExtract) {
+      sendResponse({ payload: lastExtract });
+      return;
+    }
+    void chrome.storage.local
+      .get(["lastExtract"])
+      .then((stored) => {
+        const payload = (stored.lastExtract as JobExtractResult) || undefined;
+        if (payload) {
+          lastExtract = payload;
+        }
+        sendResponse({ payload });
+      })
+      .catch(() => {
+        sendResponse({ payload: undefined });
+      });
+    return true;
   }
 
   if (message?.type === "API_FETCH") {

@@ -42,6 +42,26 @@ describe("validateJobPayload", () => {
     );
   });
 
+  it("rejects missing URL for extracted jobs", () => {
+    expect(validateJobPayload(baseJob({ source: "extract", url: "" }))).toMatch(
+      /url/i,
+    );
+  });
+
+  it("accepts pasted jobs with or without URL", () => {
+    expect(
+      validateJobPayload(baseJob({ source: "paste", url: "" })),
+    ).toBeNull();
+    expect(
+      validateJobPayload(baseJob({ source: "paste", url: undefined })),
+    ).toBeNull();
+    expect(
+      validateJobPayload(
+        baseJob({ source: "paste", url: "https://example.com/job" }),
+      ),
+    ).toBeNull();
+  });
+
   it("rejects invalid source", () => {
     expect(
       validateJobPayload(

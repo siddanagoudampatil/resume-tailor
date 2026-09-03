@@ -83,6 +83,10 @@ export function Popup() {
   const [extract, setExtract] = useState<JobExtractResult | null>(null);
   const [tab, setTab] = useState<Tab>("detected");
   const [pasteDescription, setPasteDescription] = useState("");
+  const [pasteTitle, setPasteTitle] = useState("");
+  const [pasteCompany, setPasteCompany] = useState("");
+  const [pasteUrl, setPasteUrl] = useState("");
+  const [activeTabUrl, setActiveTabUrl] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [phase, setPhase] = useState<ClientRunPhase>("idle");
   const [runId, setRunId] = useState<string | null>(null);
@@ -103,15 +107,67 @@ export function Popup() {
 
   useEffect(() => {
     void loadSettings().then(setSettings);
-    chrome.runtime.sendMessage({ type: "GET_LAST_EXTRACT" }, (res) => {
-      if (res?.payload) {
-        setExtract(res.payload as JobExtractResult);
-        if (res.payload.confidence === "low") {
-          setTab("paste");
+
+    if (typeof chrome !== "undefined" && chrome.tabs?.query) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const activeTab = tabs?.[0];
+        if (
+          activeTab?.url &&
+          (activeTab.url.startsWith("http://") ||
+            activeTab.url.startsWith("https://"))
+        ) {
+          setActiveTabUrl(activeTab.url);
+          setPasteUrl((prev) => prev || activeTab.url || "");
+          if (activeTab.title) {
+            setPasteTitle((prev) => prev || activeTab.title || "");
+          }
         }
-      }
-    });
+
+        if (activeTab?.id) {
+          chrome.tabs.sendMessage(
+            activeTab.id,
+            { type: "EXTRACT_JOB" },
+            (res) => {
+              if (chrome.runtime?.lastError) {
+                return;
+              }
+              if (res?.payload) {
+                setExtract(res.payload as JobExtractResult);
+                if (res.payload.confidence === "low") {
+                  setTab("paste");
+                }
+              }
+            },
+          );
+        }
+      });
+    }
+
+    if (typeof chrome !== "undefined" && chrome.runtime?.sendMessage) {
+      chrome.runtime.sendMessage({ type: "GET_LAST_EXTRACT" }, (res) => {
+        if (res?.payload) {
+          setExtract((prev) => prev ?? (res.payload as JobExtractResult));
+          if (res.payload.confidence === "low") {
+            setTab("paste");
+          }
+        }
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    if (extract) {
+      if (extract.title) {
+        setPasteTitle((prev) => prev || extract.title);
+      }
+      if (extract.company) {
+        setPasteCompany((prev) => prev || extract.company);
+      }
+      if (extract.url) {
+        setPasteUrl((prev) => prev || extract.url);
+      }
+    }
+  }, [extract]);
 
   useEffect(() => {
     if (!client) return;
@@ -134,10 +190,20 @@ export function Popup() {
   const buildJob = useCallback((): JobPayload | null => {
     if (!extract && tab === "detected") return null;
     const description =
-      tab === "paste" ? pasteDescription : (extract?.description ?? "");
-    const title = extract?.title ?? "Role";
-    const company = extract?.company ?? "Company";
-    const url = extract?.url ?? "";
+      tab === "paste" ? pasteDescription.trim() : (extract?.description ?? "");
+    const title =
+      tab === "paste"
+        ? (pasteTitle.trim() || extract?.title || "Role")
+        : (extract?.title ?? "Role");
+    const company =
+      tab === "paste"
+        ? (pasteCompany.trim() || extract?.company || "Company")
+        : (extract?.company ?? "Company");
+    const url =
+      tab === "paste"
+        ? (pasteUrl.trim() || extract?.url || activeTabUrl || "")
+        : (extract?.url || activeTabUrl || "");
+
     return jobToPayload(
       {
         title,
@@ -148,7 +214,16 @@ export function Popup() {
       },
       confirmed,
     );
-  }, [confirmed, extract, pasteDescription, tab]);
+  }, [
+    activeTabUrl,
+    confirmed,
+    extract,
+    pasteCompany,
+    pasteDescription,
+    pasteTitle,
+    pasteUrl,
+    tab,
+  ]);
 
   const canTailor =
     confirmed &&
@@ -156,7 +231,8 @@ export function Popup() {
       ? pasteDescription.trim().length >= MIN_DESCRIPTION_LENGTH
       : Boolean(
           extract?.description &&
-            extract.description.length >= MIN_DESCRIPTION_LENGTH,
+            extract.description.length >= MIN_DESCRIPTION_LENGTH &&
+            (extract.url || activeTabUrl),
         ));
 
   const isBusy = phase === "running" || phase === "creating";
@@ -279,9 +355,9 @@ export function Popup() {
                     <span className="chip chip--success">Ready</span>
                   )}
                 </div>
-                {extract.url ? (
-                  <p className="job-url" title={extract.url}>
-                    {shortUrl(extract.url)}
+                {(extract.url || activeTabUrl) ? (
+                  <p className="job-url" title={extract.url || activeTabUrl}>
+                    {shortUrl(extract.url || activeTabUrl)}
                   </p>
                 ) : null}
               </div>
@@ -309,12 +385,42 @@ export function Popup() {
       {tab === "paste" && (
         <section className="panel" aria-label="Paste job description">
           <div className="field">
+            <label htmlFor="jd-title">Job title</label>
+            <input
+              id="jd-title"
+              type="text"
+              value={pasteTitle}
+              onChange={(e) => setPasteTitle(e.target.value)}
+              placeholder="e.g. Senior Software Engineer"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="jd-company">Company</label>
+            <input
+              id="jd-company"
+              type="text"
+              value={pasteCompany}
+              onChange={(e) => setPasteCompany(e.target.value)}
+              placeholder="e.g. Acme Corp"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="jd-url">Job URL (optional)</label>
+            <input
+              id="jd-url"
+              type="url"
+              value={pasteUrl}
+              onChange={(e) => setPasteUrl(e.target.value)}
+              placeholder="https://..."
+            />
+          </div>
+          <div className="field">
             <label htmlFor="jd-paste">Job description</label>
             <textarea
               id="jd-paste"
               value={pasteDescription}
               onChange={(e) => setPasteDescription(e.target.value)}
-              rows={9}
+              rows={7}
               placeholder="Paste the full job description…"
             />
           </div>

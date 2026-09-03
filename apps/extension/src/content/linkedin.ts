@@ -53,3 +53,11 @@ function extractLinkedInJob() {
 
 const result = extractLinkedInJob();
 chrome.runtime.sendMessage({ type: "JOB_EXTRACTED", payload: result });
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "EXTRACT_JOB") {
+    const fresh = extractLinkedInJob();
+    chrome.runtime.sendMessage({ type: "JOB_EXTRACTED", payload: fresh });
+    sendResponse({ payload: fresh });
+  }
+});

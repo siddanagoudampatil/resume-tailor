@@ -70,6 +70,13 @@ describe("Popup", () => {
         }),
         openOptionsPage: vi.fn(),
       },
+      tabs: {
+        query: vi.fn((_query: any, callback?: any) => {
+          callback?.([]);
+          return Promise.resolve([]);
+        }),
+        sendMessage: vi.fn(),
+      },
       storage: {
         sync: {
           get: syncGet,
@@ -173,5 +180,41 @@ describe("Popup", () => {
     });
 
     expect(container.querySelector(".status-banner--failed")).not.toBeNull();
+  });
+
+  it("renders title, company, and url in paste mode and prefills active tab url", async () => {
+    (chrome.tabs.query as any) = vi.fn((_query: any, callback?: any) => {
+      callback?.([{ id: 1, url: "https://example.com/job/99", title: "Active Tab Title" }]);
+      return Promise.resolve([{ id: 1, url: "https://example.com/job/99", title: "Active Tab Title" }]);
+    });
+
+    await act(async () => {
+      root.render(<Popup />);
+    });
+
+    await waitFor(() => {
+      expect(container.querySelector("nav.segmented")).not.toBeNull();
+    });
+
+    const pasteTabBtn = container.querySelector("nav.segmented button:nth-child(2)") as HTMLButtonElement;
+    await act(async () => {
+      pasteTabBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(container.querySelector("#jd-url")).not.toBeNull();
+    });
+
+    const urlInput = container.querySelector("#jd-url") as HTMLInputElement;
+    const titleInput = container.querySelector("#jd-title") as HTMLInputElement;
+    const companyInput = container.querySelector("#jd-company") as HTMLInputElement;
+    const descTextarea = container.querySelector("#jd-paste") as HTMLTextAreaElement;
+
+    expect(urlInput).not.toBeNull();
+    expect(urlInput.value).toBe("https://example.com/job/99");
+    expect(titleInput).not.toBeNull();
+    expect(titleInput.value).toBe("Active Tab Title");
+    expect(companyInput).not.toBeNull();
+    expect(descTextarea).not.toBeNull();
   });
 });

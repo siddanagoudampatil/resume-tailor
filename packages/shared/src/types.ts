@@ -14,7 +14,7 @@ export interface JobExtractResult {
 export interface JobPayload {
   title: string;
   company: string;
-  url: string;
+  url?: string;
   description: string;
   source: JobSource;
   /** Must be true for POST /runs (server-enforced AE4). */
@@ -89,7 +89,7 @@ export function validateJobPayload(job: JobPayload): string | null {
   }
   if (!job.title?.trim()) return "Title is required";
   if (!job.company?.trim()) return "Company is required";
-  if (!job.url?.trim()) return "URL is required";
+  if (job.source === "extract" && !job.url?.trim()) return "URL is required";
   const desc = job.description?.trim() ?? "";
   if (!desc) return "Description is required";
   if (desc.length < MIN_DESCRIPTION_LENGTH) {

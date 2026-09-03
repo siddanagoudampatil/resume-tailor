@@ -37,3 +37,11 @@ function extractGenericJob() {
 
 const result = extractGenericJob();
 chrome.runtime.sendMessage({ type: "JOB_EXTRACTED", payload: result });
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "EXTRACT_JOB") {
+    const fresh = extractGenericJob();
+    chrome.runtime.sendMessage({ type: "JOB_EXTRACTED", payload: fresh });
+    sendResponse({ payload: fresh });
+  }
+});
